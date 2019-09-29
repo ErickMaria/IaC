@@ -7,6 +7,31 @@ resource "azurerm_resource_group" "rg" {
   location = "South Central US"
 }
 
+resource "azurerm_virtual_network" "network" {
+  name                = "${var.prefix}-network"
+  address_space       = ["10.0.0.0/30"]
+  location            = "${azurerm_resource_group.rg.location}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+}
+
+resource "azurerm_subnet" "subnet" {
+  name                 = "${var.prefix}-subnet"
+  resource_group_name  = "${azurerm_resource_group.rg.name}"
+  virtual_network_name = "${azurerm_virtual_network.network.name}"
+  address_prefix       = "10.0.2.0/30"
+}
+
+resource "azurerm_network_interface" "network_interface" {
+  name                = "${var.prefix}-network_interface"
+  location            = "${azurerm_resource_group.rg.location}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+
+  ip_configuration {
+    name                          = "${var.prefix}_ip_configuration"
+    subnet_id                     = "${azurerm_subnet.subnet.id}"
+    private_ip_address_allocation = "Static"
+  }
+}
 
 resource "azurerm_network_security_group" "nsg" {
   name                = "${var.prefix}-nsg"
@@ -20,8 +45,8 @@ resource "azurerm_network_security_rule" "nsr-inbound" {
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
-  source_port_ranges          = "*"
-  destination_port_ranges     = "[22, 88, 443]"
+  source_port_range           = "*"
+  destination_port_ranges     = ["22", "88", "443"]
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
   resource_group_name         = "${azurerm_resource_group.rg.name}"
@@ -34,46 +59,24 @@ resource "azurerm_network_security_rule" "nsr-outbound" {
   direction                   = "Outbound"
   access                      = "Allow"
   protocol                    = "Tcp"
-  source_port_ranges          = "*"
-  destination_port_ranges     = "[22, 88, 443]"
+  source_port_range           = "*"
+destination_port_ranges       = ["22", "88", "443"]
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
   resource_group_name         = "${azurerm_resource_group.rg.name}"
   network_security_group_name = "${azurerm_network_security_group.nsg.name}"
 }
 
-resource "azurerm_virtual_network" "network" {
-  name                = "${var.prefix}-network"
-  address_space       = ["10.0.0.0/30"]
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-}
-
-resource "azurerm_subnet" "subnet" {
-  name                 = "${var.prefix}-subnet"
-  resource_group_name  = "${azurerm_resource_group.rg.name}"
-  virtual_network_name = "${azurerm_virtual_network.network.name}"
-  address_prefix       = "10.0.2.0/30"
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = "${azurerm_subnet.subnet.id}"
   network_security_group_id = "${azurerm_network_security_group.nsg.id}"
-}
-
-resource "azurerm_network_interface" "network_interface" {
-  name                = "${var.prefix}-network_interface"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-
-  ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.internal.id}"
-    private_ip_address_allocation = "Static"
-  }
 }
 
 resource "azurerm_virtual_machine" "server" {
   name                  = "${var.prefix}-server"
   location              = "${azurerm_resource_group.rg.location}"
   resource_group_name   = "${azurerm_resource_group.rg.name}"
-  network_interface_ids = ["${azurerm_network_interface.main.id}"]
+  network_interface_ids = ["${azurerm_network_interface.network_interface.id}"]
   vm_size               = "Standard_D2_v3"
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
@@ -114,9 +117,9 @@ resource "azurerm_virtual_machine" "server" {
 
 resource "azurerm_virtual_machine" "host" {
   name                  = "${var.prefix}-host"
-  location              = "${azurerm_resource_group.main.location}"
-  resource_group_name   = "${azurerm_resource_group.main.name}"
-  network_interface_ids = ["${azurerm_network_interface.main.id}"]
+  location              = "${azurerm_resource_group.rg.location}"
+  resource_group_name   = "${azurerm_resource_group.rg.name}"
+  network_interface_ids = ["${azurerm_network_interface.network_interface.id}"]
   vm_size               = "Standard_D2_v3"
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
