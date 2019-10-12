@@ -18,7 +18,6 @@ resource "azurerm_subnet" "subnet" {
   address_prefix       = "10.0.2.0/24"
 }
 
-# Create public IPs
 resource "azurerm_public_ip" "public_ip_server" {
   name                = "${var.prefix}_public_ip_server"
   location            = "${azurerm_resource_group.rg.location}"
