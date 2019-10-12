@@ -111,31 +111,41 @@ resource "azurerm_virtual_machine" "server" {
   resource_group_name   = "${azurerm_resource_group.rg.name}"
   network_interface_ids = ["${azurerm_network_interface.network_interface_server.id}"]
   vm_size               = "Standard_D2_v3"
+  
+  # Uncomment this line to delete the OS disk automatically when deleting the VM
   delete_os_disk_on_termination = true
+
+  # Uncomment this line to delete the data disks automatically when deleting the VM
   delete_data_disks_on_termination = true
+  
   storage_image_reference {
     publisher = "RedHat"
     offer     = "RHEL"
     sku       = "7-RAW"
     version   = "7.6.2019062120"
   }
+  
   storage_os_disk {
     name              = "server_disk"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
+  
   os_profile {
     computer_name  = "rancher"
     admin_username = "${var.server_admin_user}"
     admin_password = "${var.server_admin_pass}"
   }
+  
   os_profile_linux_config {
     disable_password_authentication = false
   }
+  
   tags = {
     environment = "DevOps / IaC / Test"
   }
+  
 }
 
 resource "azurerm_virtual_machine" "host" {
