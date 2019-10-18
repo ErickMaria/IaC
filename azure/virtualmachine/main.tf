@@ -22,7 +22,7 @@ resource "azurerm_public_ip" "public_ip_server" {
   name                = "${var.prefix}_public_ip_server"
   location            = "${azurerm_resource_group.rg.location}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
 
   tags = {
     environment = "DevOps / IaC / Test"
@@ -33,7 +33,7 @@ resource "azurerm_public_ip" "public_ip_host" {
   name                = "${var.prefix}_public_ip_host"
   location            = "${azurerm_resource_group.rg.location}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
 
   tags = {
     environment = "DevOps / IaC / Test"
@@ -82,7 +82,8 @@ resource "azurerm_network_interface" "network_interface_server" {
   ip_configuration {
     name                          = "${var.prefix}_ip_configuration_server"
     subnet_id                     = "${azurerm_subnet.subnet.id}"
-    private_ip_address_allocation = "Dynamic"
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "${cidrhost(azurerm_subnet.subnet.address_prefix, 5)}"
     public_ip_address_id          = "${azurerm_public_ip.public_ip_server.id}"
   }
 }
@@ -95,7 +96,8 @@ resource "azurerm_network_interface" "network_interface_host" {
   ip_configuration {
     name                          = "${var.prefix}_ip_configuration_host"
     subnet_id                     = "${azurerm_subnet.subnet.id}"
-    private_ip_address_allocation = "Dynamic"
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "${cidrhost(azurerm_subnet.subnet.address_prefix, 6)}"
     public_ip_address_id          = "${azurerm_public_ip.public_ip_host.id}"
   }
 }
