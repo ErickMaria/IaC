@@ -51,9 +51,9 @@ resource "azurerm_network_security_rule" "nsr_inbound" {
   priority                    = 100
   direction                   = "Inbound"
   access                      = "Allow"
-  protocol                    = "Tcp"
+  protocol                    = "*"
   source_port_range           = "*"
-  destination_port_ranges     = ["22", "80", "443"]
+  destination_port_ranges     = ["22","80","443","2376","2379","2380","8472","4789","6443","6783","9099","10250"]
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
   resource_group_name         = "${azurerm_resource_group.rg.name}"
@@ -65,9 +65,9 @@ resource "azurerm_network_security_rule" "nsr_outbound" {
   priority                    = 110
   direction                   = "Outbound"
   access                      = "Allow"
-  protocol                    = "Tcp"
+  protocol                    = "*"
   source_port_range           = "*"
-  destination_port_ranges     = ["22", "80", "443"]
+  destination_port_ranges     = ["22","80","443","2376","2379","2380","8472","4789","6443","6783","9099","10250"]
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
   resource_group_name         = "${azurerm_resource_group.rg.name}"
